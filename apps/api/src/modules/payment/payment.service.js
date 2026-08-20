@@ -1,3 +1,4 @@
+import prisma from "../../lib/prisma.js";
 import { createPayment, updatePaymentStatus, findPaymentByOrderId } from "./repositories/payment.repository.js";
 import { findByPhone, createUser, updateUserTier } from "../user/repositories/user.repository.js";
 import { createOrUpdateSubscription } from "../subscription/repositories/subscription.repository.js";

@@ -4,14 +4,31 @@ import { parseCategory } from "./category.parser.js";
 import { removeStopWords } from "./stopword.parser.js";
 
 function splitMessage(message) {
-  return String(message)
-    .split(/\n|,|\s+sama\s+|\s+dan\s+|\s+\+\s+/gi)
+  let cleaned = String(message || "")
+    .replace(/^(?:bro\s+rinci|rinci|halo\s+rinci|bot)\s*,?\s*/i, "")
+    .trim();
+
+  // Insert standard delimiter before conjunctions, time markers, and income transitions
+  cleaned = cleaned
+    .replace(/\s+(?:sama|dan|terus|lalu|kemudian|habis\s+itu|abis\s+itu|juga|plus|\+)\s+/gi, " | ")
+    .replace(/\s+(?:tadi\s+pagi|pagi\s+ini|siang\s+ini|tadi\s+siang|siang|sore\s+ini|tadi\s+sore|sore|malam\s+ini|tadi\s+malam|malam)\s+/gi, " | ")
+    .replace(/\s+(?:dapat\s+transferan|transferan|dapat\s+gaji|terima\s+uang)\s+/gi, " | dapat transferan ");
+
+  return cleaned
+    .split(/\n|\r\n|,|\|/g)
     .map((x) => x.trim())
-    .filter(Boolean);
+    .filter((x) => x.length > 2);
 }
 
 function cleanNote(text) {
-  const VERBS = [
+  const FILLERS = [
+    "bro",
+    "rinci",
+    "tadi",
+    "pagi",
+    "siang",
+    "sore",
+    "malam",
     "beli",
     "bayar",
     "buat",
@@ -24,10 +41,14 @@ function cleanNote(text) {
     "transfer",
     "ambil",
     "kirim",
-    "kasih"
+    "kasih",
+    "dapat",
+    "terima",
+    "qris",
+    "ke"
   ];
 
-  const regex = new RegExp(`\\b(${VERBS.join("|")})\\b`, "gi");
+  const regex = new RegExp(`\\b(${FILLERS.join("|")})\\b`, "gi");
 
   return String(text)
     .replace(regex, "")

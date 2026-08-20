@@ -27,7 +27,7 @@ export async function processTransactionMessage(phone, message, name = null) {
     user = await createTrialUser(phone, name);
   }
 
-  const processed = processMessage(message);
+  const processed = await processMessage(message);
 
   if (processed.intent !== "CREATE_TRANSACTION") {
     return {
@@ -37,17 +37,27 @@ export async function processTransactionMessage(phone, message, name = null) {
     };
   }
 
+  const transactionsToSave = processed.data?.transactions || [];
+
+  if (transactionsToSave.length === 0) {
+    return {
+      type: "NON_TRANSACTION",
+      intent: "UNKNOWN",
+      text: "❌ Tidak dapat mengenali detail nominal atau transaksi. Contoh format: *makan 25rb gopay* atau *kopi 30rb bca*"
+    };
+  }
+
   const result = await executeTransactions(
     user,
-    processed.data.transactions
+    transactionsToSave
   );
 
   let budget = null;
 
-  if (processed.data.transactions.length === 1) {
+  if (transactionsToSave.length === 1) {
     budget = await checkBudget(
       user.id,
-      processed.data.transactions[0].categoryName
+      transactionsToSave[0].categoryName
     );
   }
 
